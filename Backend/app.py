@@ -84,8 +84,16 @@ def get_languages():
     response = requests.get(f"{GITHUB_API}/repos/{owner}/{repo}/languages")
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch languages"}), 400
-    languages = response.json()  # Returns a dict like {"Python": 5000, "JavaScript": 2000}
-    return jsonify(languages)
+    languages = response.json()  # e.g., {"Python": 5000, "JavaScript": 2000}
+    total_bytes = sum(languages.values())
+    language_percentages = {
+        lang: round((count / total_bytes) * 100, 2) if total_bytes > 0 else 0
+        for lang, count in languages.items()
+    }
+    return jsonify({
+        "bytes": languages,
+        "percentages": language_percentages
+    })
 
 @app.route('/api/code_frequency', methods=['POST'])
 def get_code_frequency():
