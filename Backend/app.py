@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime,timezone
 from dotenv import load_dotenv
 import os
 
@@ -177,18 +177,23 @@ def get_contribution_heatmap():
         return jsonify({"error": "No URL provided"}), 400
     parts = url.split('/')
     owner, repo = parts[-2], parts[-1]
-    response = requests.get(f"{GITHUB_API}/repos/{owner}/{repo}/stats/contributors")
+    response = requests.get(f"{GITHUB_API}/repos/{owner}/{repo}/stats/contributors", headers=HEADERS)
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch contribution data"}), 400
     contributors = response.json()
     heatmap_data = {}
     for contributor in contributors:
         for week in contributor['weeks']:
-            week_str = datetime.utcfromtimestamp(week['w']).strftime('%Y-%m-%d')
-            if week_str not in heatmap_data:
-                heatmap_data[week_str] = 0
-            heatmap_data[week_str] += week['c']  # Sum commits per week
-    return jsonify(heatmap_data)
+            week_start = datetime.fromtimestamp(week['w'], tz=timezone.utc).strftime('%Y-%m-%d')
+            if week_start not in heatmap_data:
+                heatmap_data[week_start] = 0
+            heatmap_data[week_start] += week['c']  # Sum commits per week
+    # Convert to a list of dicts for clearer metadata
+    heatmap_list = [
+        {"Date": date, "Total_Commits": count}
+        for date, count in sorted(heatmap_data.items())
+    ]
+    return jsonify(heatmap_list)
 
 if __name__ == "__main__":
     app.run(debug=True, port=5000)
