@@ -232,5 +232,55 @@ def get_pull_requests():
         "merged": merged_count
     })
 
-if __name__ == '__main__':
-    app.run(debug=True)
+@app.route('/api/contribution_heatmap', methods=['POST'])
+def get_contribution_heatmap():
+    url = request.json.get('url')
+    if not url:
+        return jsonify({"error": "No URL provided"}), 400
+    parts = url.split('/')
+    owner, repo = parts[-2], parts[-1]
+    # Step 1: Find the first and last commit dates
+    commits_url = f"{GITHUB_API}/repos/{owner}/{repo}/commits"
+    params = {"per_page": 100, "page": 1}
+    all_commits = []
+    while True:
+        response = requests.get(commits_url, headers=HEADERS, params=params)
+        if response.status_code != 200:
+            break
+        page_commits = response.json()
+        if not page_commits:
+            break
+        all_commits.extend(page_commits)
+        if len(page_commits) < 100:
+            break
+        params["page"] += 1
+ 
+    # Step 2: Group commits by day
+    daily_counts = defaultdict(int)
+    for commit in all_commits:
+        date_str = commit["commit"]["author"]["date"]
+        date_obj = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        day_str = date_obj.strftime("%Y-%m-%d")
+        daily_counts[day_str] += 1
+ 
+    # Step 3: Fill in days with zero commits
+    if daily_counts:
+        min_day = min(daily_counts)
+        max_day = max(daily_counts)
+        current_day = datetime.fromisoformat(min_day)
+        last_day = datetime.fromisoformat(max_day)
+        result = []
+        while current_day <= last_day:
+            day_str = current_day.strftime("%Y-%m-%d")
+            result.append({
+             "date": day_str,
+             "commits": daily_counts.get(day_str, 0)
+            })
+            current_day += timedelta(days=1)
+    else:
+        result = []
+ 
+    return jsonify(result)
+
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
