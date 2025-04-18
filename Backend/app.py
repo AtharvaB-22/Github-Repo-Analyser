@@ -103,10 +103,27 @@ def get_code_frequency():
     parts = url.split('/')
     owner, repo = parts[-2], parts[-1]
     response = requests.get(f"{GITHUB_API}/repos/{owner}/{repo}/stats/code_frequency")
+    if response.status_code == 202:
+        return jsonify({"message": "GitHub is generating statistics. Please try again after a few seconds."}), 202
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch code frequency"}), 400
-    code_frequency = response.json()  # List of [timestamp, additions, deletions]
-    return jsonify(code_frequency)
+    code_frequency = response.json()
+    if not code_frequency:
+        return jsonify({"message": "No code frequency data available yet. Please try again later."}), 204
+
+    # Convert Unix timestamps to human-readable dates
+    readable_code_frequency = []
+    for week_data in code_frequency:
+        week_start = datetime.utcfromtimestamp(week_data[0]).strftime('%Y-%m-%d')
+        additions = week_data[1]
+        deletions = week_data[2]
+        readable_code_frequency.append({
+            "Date": week_start,
+            "Code Additions": additions,
+            "Code Deletions": deletions
+        })
+
+    return jsonify(readable_code_frequency)
 
 @app.route('/api/pull_requests', methods=['POST'])
 def get_pull_requests():
