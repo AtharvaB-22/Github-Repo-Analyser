@@ -3,6 +3,12 @@ from flask_cors import CORS
 import requests
 from collections import defaultdict
 from datetime import datetime
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # take environment variables from .env.
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+HEADERS = {"Authorization": f"token {GITHUB_TOKEN}"} if GITHUB_TOKEN else {}
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for frontend access
@@ -125,6 +131,24 @@ def get_code_frequency():
 
     return jsonify(readable_code_frequency)
 
+def fetch_all_prs(owner, repo, state):
+    prs = []
+    page = 1
+    while True:
+        url = f"{GITHUB_API}/repos/{owner}/{repo}/pulls?state={state}&per_page=100&page={page}"
+        response = requests.get(url, headers=HEADERS)
+        if response.status_code != 200:
+            print(f"Error: {response.status_code}, {response.text}")  # Debug print
+            break
+        page_data = response.json()
+        if not page_data:
+            break
+        prs.extend(page_data)
+        if len(page_data) < 100:
+            break
+        page += 1
+    return prs
+
 @app.route('/api/pull_requests', methods=['POST'])
 def get_pull_requests():
     url = request.json.get('url')
@@ -132,13 +156,18 @@ def get_pull_requests():
         return jsonify({"error": "No URL provided"}), 400
     parts = url.split('/')
     owner, repo = parts[-2], parts[-1]
-    open_prs = requests.get(f"{GITHUB_API}/repos/{owner}/{repo}/pulls?state=open")
-    closed_prs = requests.get(f"{GITHUB_API}/repos/{owner}/{repo}/pulls?state=closed")
-    if open_prs.status_code != 200 or closed_prs.status_code != 200:
+    open_prs = fetch_all_prs(owner, repo, "open")
+    closed_prs = fetch_all_prs(owner, repo, "closed")
+    if open_prs is None or closed_prs is None:
         return jsonify({"error": "Failed to fetch pull requests"}), 400
+
+    merged_count = sum(1 for pr in closed_prs if pr.get("merged_at"))
+    closed_unmerged_count = len(closed_prs) - merged_count
+
     return jsonify({
-        "open": len(open_prs.json()),
-        "closed": len(closed_prs.json())
+        "open": len(open_prs),
+        "closed_unmerged": closed_unmerged_count,
+        "merged": merged_count
     })
     
 @app.route('/api/contribution_heatmap', methods=['POST'])
