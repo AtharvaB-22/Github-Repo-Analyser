@@ -14,17 +14,19 @@ const RepoHeader: React.FC<RepoHeaderProps> = ({ repoData, owner, repo }) => {
     <div className="card p-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold mb-1">
-            <a 
-              href={`https://github.com/${owner}/${repo}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-            >
-              {owner}/{repo}
-            </a>
-          </h1>
-          <p className="text-neutral-600 dark:text-neutral-400 text-sm">
+          <div className="text-2xl font-semibold mb-1">
+            <p>Username: {owner}</p>
+            <p>Repo Name: {repo}</p>
+          </div>
+          <a 
+            href={`https://github.com/${owner}/${repo}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-neutral-600 dark:text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+          >
+            View on GitHub
+          </a>
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm mt-1">
             Detailed repository analysis and visualization
           </p>
         </div>
