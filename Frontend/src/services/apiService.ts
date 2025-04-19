@@ -71,34 +71,34 @@ export async function fetchLanguages(repoUrl: string) {
 }
 
 // Fetch code frequency data from /api/code_frequency
-export async function fetchCodeFrequency(repoUrl: string) {
-  const response = await fetch(`${API_ENDPOINT}/code_frequency`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: repoUrl }),
-  });
+// export async function fetchCodeFrequency(repoUrl: string) {
+//   const response = await fetch(`${API_ENDPOINT}/code_frequency`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ url: repoUrl }),
+//   });
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch code frequency: ${response.statusText}`);
-  }
+//   if (!response.ok) {
+//     throw new Error(`Failed to fetch code frequency: ${response.statusText}`);
+//   }
   
-  return response.json(); // Returns array of { Date, Code Additions, Code Deletions }
-}
+//   return response.json(); // Returns array of { Date, Code Additions, Code Deletions }
+// }
 
-// Fetch pull request statistics from /api/pull_requests
-export async function fetchPullRequests(repoUrl: string) {
-  const response = await fetch(`${API_ENDPOINT}/pull_requests`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url: repoUrl }),
-  });
+// // Fetch pull request statistics from /api/pull_requests
+// export async function fetchPullRequests(repoUrl: string) {
+//   const response = await fetch(`${API_ENDPOINT}/pull_requests`, {
+//     method: 'POST',
+//     headers: { 'Content-Type': 'application/json' },
+//     body: JSON.stringify({ url: repoUrl }),
+//   });
   
-  if (!response.ok) {
-    throw new Error(`Failed to fetch pull requests: ${response.statusText}`);
-  }
+//   if (!response.ok) {
+//     throw new Error(`Failed to fetch pull requests: ${response.statusText}`);
+//   }
   
-  return response.json(); // Returns { open, closed_unmerged, merged }
-}
+//   return response.json(); // Returns { open, closed_unmerged, merged }
+// }
 
 // Fetch contribution heatmap data from /api/contribution_heatmap
 export async function fetchContributionHeatmap(repoUrl: string) {

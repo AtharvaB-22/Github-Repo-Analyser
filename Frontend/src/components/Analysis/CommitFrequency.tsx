@@ -13,6 +13,24 @@ interface CommitFrequencyProps {
 
 type FrequencyOption = 'day' | 'week' | 'month';
 
+function getDateRangeOfISOWeek(isoWeekStr: string) {
+  // isoWeekStr: 'YYYY-WW' or 'YYYY-23'
+  const [yearStr, weekStr] = isoWeekStr.split('-');
+  const year = Number(yearStr);
+  const week = Number(weekStr);
+  // ISO week starts on Monday
+  const simple = new Date(year, 0, 1 + (week - 1) * 7);
+  const dow = simple.getDay();
+  let ISOweekStart = new Date(simple);
+  if (dow <= 4)
+    ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+  else
+    ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+  const ISOweekEnd = new Date(ISOweekStart);
+  ISOweekEnd.setDate(ISOweekStart.getDate() + 6);
+  return { start: ISOweekStart, end: ISOweekEnd };
+}
+
 const CommitFrequency: React.FC<CommitFrequencyProps> = ({ repoUrl }) => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -158,19 +176,17 @@ const CommitFrequency: React.FC<CommitFrequencyProps> = ({ repoUrl }) => {
                     const date = new Date(value);
                     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                   } else if (frequency === 'week') {
-                    // Week format: "YYYY-Www" or "YYYY-MM-DD_to_YYYY-MM-DD"
-                    if (value.includes('_to_')) {
-                      const [start, end] = value.split('_to_');
-                      return `${new Date(start).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}–${new Date(end).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+                    // value: 'YYYY-23' or 'YYYY-W23'
+                    if (/^\d{4}-\d{2}$/.test(value)) {
+                      const { start, end } = getDateRangeOfISOWeek(value);
+                      return `${start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}–${end.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
                     }
-                    const [year, week] = value.split('-W');
-                    if (year && week) return `W${week} ${year}`;
                     return value;
                   } else if (frequency === 'month') {
-                    // Month format: "YYYY-MM"
+                    // value: 'YYYY-MM'
                     const [year, month] = value.split('-');
                     if (year && month) {
-                      return new Date(Number(year), Number(month) - 1).toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+                      return new Date(Number(year), Number(month) - 1).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
                     }
                     return value;
                   }

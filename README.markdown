@@ -190,8 +190,6 @@ The backend serves these endpoints (all expect a POST request with a JSON body l
 - `POST /api/commits`: Provides commit frequency data (daily, weekly, or monthly).
 - `POST /api/contributors`: Lists contributors and their commit counts.
 - `POST /api/languages`: Shows language usage by bytes and percentage.
-- `POST /api/code_frequency`: Returns weekly code additions and deletions.
-- `POST /api/pull_requests`: Gives pull request stats (open, closed, merged).
 - `POST /api/contribution_heatmap`: Supplies daily commit data for a heatmap.
 
 Try them with a tool like Postman or curl!

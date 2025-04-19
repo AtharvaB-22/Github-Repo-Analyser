@@ -16,8 +16,8 @@ const TabNavigation: React.FC<TabNavigationProps> = ({ activeTab, onChange }) =>
     { id: 'commits', label: 'Commits', icon: <Github className="h-4 w-4" /> },
     { id: 'contributors', label: 'Contributors', icon: <Users className="h-4 w-4" /> },
     { id: 'languages', label: 'Languages', icon: <Code className="h-4 w-4" /> },
-    { id: 'code', label: 'Code Frequency', icon: <BarChart2 className="h-4 w-4" /> },
-    { id: 'pulls', label: 'Pull Requests', icon: <GitPullRequest className="h-4 w-4" /> },
+    // { id: 'code', label: 'Code Frequency', icon: <BarChart2 className="h-4 w-4" /> },
+    // { id: 'pulls', label: 'Pull Requests', icon: <GitPullRequest className="h-4 w-4" /> },
     { id: 'heatmap', label: 'Contribution Heat Map', icon: <GitMerge className="h-4 w-4" /> },
   ];
 
