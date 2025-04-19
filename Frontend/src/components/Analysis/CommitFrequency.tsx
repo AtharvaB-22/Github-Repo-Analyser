@@ -173,3 +173,4 @@ const CommitFrequency: React.FC<CommitFrequencyProps> = ({ repoUrl }) => {
 };
 
 export default CommitFrequency;
+
