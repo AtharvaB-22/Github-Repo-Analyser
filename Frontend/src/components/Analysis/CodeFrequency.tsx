@@ -159,7 +159,7 @@ const CodeFrequency: React.FC<CodeFrequencyProps> = ({ repoUrl }) => {
     setLoading(true);
     setError(null);
     fetchCodeFrequency(repoUrl)
-      .then((response) => setData(response || []))
+      .then((response) => setData(Array.isArray(response) ? response : []))
       .catch(() => setError('Failed to load code frequency data'))
       .finally(() => setLoading(false));
   }, [repoUrl]);
@@ -173,44 +173,27 @@ const CodeFrequency: React.FC<CodeFrequencyProps> = ({ repoUrl }) => {
         </p>
       </div>
       <div className="chart-container min-h-[300px]">
-        {loading ? (
-          <div className="flex flex-col items-center justify-center h-[300px]">
-            <LoadingSpinner />
-            <span className="mt-2 text-neutral-500">Loading data, please wait...</span>
-          </div>
-        ) : error ? (
-          <div className="flex items-center justify-center h-[300px] text-error-600 dark:text-error-500">
-            {error}
-          </div>
-        ) : !data || data.length === 0 ? (
-          <div className="flex items-center justify-center h-[300px] text-neutral-600 dark:text-neutral-400">
-            No code frequency data available
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart
-              data={data}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-            >
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
-              <XAxis 
-                dataKey="Date" 
-                tick={{ fill: '#64748b' }}
-                tickFormatter={(value) => {
-                  const date = new Date(value);
-                  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                }}
-              />
-              <YAxis tick={{ fill: '#64748b' }} />
-              <Tooltip />
-              <Legend />
-              <ReferenceLine y={0} stroke="#64748b" />
-              <Bar dataKey="Code Additions" stackId="a" fill="#10b981" />
-              <Bar dataKey="Code Deletions" stackId="a" fill="#ef4444" />
-            </BarChart>
-          </ResponsiveContainer>
-        )}
-      </div>
+      {loading ? (
+        <div className="flex flex-col items-center justify-center h-[300px]">
+          <LoadingSpinner />
+          <span className="mt-2 text-neutral-500">Loading data, please wait...</span>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center h-[300px] text-error-600 dark:text-error-500">
+          {error}
+        </div>
+      ) : !Array.isArray(data) || data.length === 0 ? (
+        <div className="flex items-center justify-center h-[300px] text-neutral-600 dark:text-neutral-400">
+          No code frequency data available
+        </div>
+      ) : (
+        <ResponsiveContainer width="100%" height={300}>
+          <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+            {/* ...rest of your chart */}
+          </BarChart>
+        </ResponsiveContainer>
+      )}
+    </div>
     </div>
   );
 };
