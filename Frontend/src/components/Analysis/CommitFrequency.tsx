@@ -25,26 +25,37 @@ const CommitFrequency: React.FC<CommitFrequencyProps> = ({ repoUrl }) => {
   }, [repoUrl, frequency]);
 
   const loadData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetchCommitFrequency(repoUrl, frequency);
-      
-      // Transform data for the chart
-      const chartData = Object.entries(response.commit_frequency).map(([date, count]) => ({
-        date,
-        commits: count,
-      }));
-      
-      setData(chartData);
-    } catch (err) {
-      console.error('Error loading commit frequency:', err);
-      setError('Failed to load commit frequency data');
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    setError(null);
+
+    const response = await fetchCommitFrequency(repoUrl, frequency);
+
+    // Sort and slice the entries for the selected frequency
+    let entries = Object.entries(response.commit_frequency);
+    entries.sort(([a], [b]) => a.localeCompare(b));
+    if (frequency === 'day') {
+      entries = entries.slice(-15);
+    } else if (frequency === 'week') {
+      entries = entries.slice(-4);
+    } else if (frequency === 'month') {
+      entries = entries.slice(-12);
     }
-  };
+
+    // Transform for chart
+    const chartData = entries.map(([date, count]) => ({
+      date,
+      commits: count,
+    }));
+
+    setData(chartData);
+  } catch (err) {
+    console.error('Error loading commit frequency:', err);
+    setError('Failed to load commit frequency data');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const frequencyOptions: { value: FrequencyOption; label: string }[] = [
     { value: 'day', label: 'Daily' },
@@ -139,19 +150,31 @@ const CommitFrequency: React.FC<CommitFrequencyProps> = ({ repoUrl }) => {
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
-              <XAxis 
-                dataKey="date" 
+              <XAxis
+                dataKey="date"
                 tick={{ fill: '#64748b' }}
                 tickFormatter={(value) => {
-                  // Format date based on frequency
-                  const date = new Date(value);
                   if (frequency === 'day') {
+                    const date = new Date(value);
                     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                   } else if (frequency === 'week') {
-                    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-                  } else {
-                    return date.toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+                    // Week format: "YYYY-Www" or "YYYY-MM-DD_to_YYYY-MM-DD"
+                    if (value.includes('_to_')) {
+                      const [start, end] = value.split('_to_');
+                      return `${new Date(start).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}–${new Date(end).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}`;
+                    }
+                    const [year, week] = value.split('-W');
+                    if (year && week) return `W${week} ${year}`;
+                    return value;
+                  } else if (frequency === 'month') {
+                    // Month format: "YYYY-MM"
+                    const [year, month] = value.split('-');
+                    if (year && month) {
+                      return new Date(Number(year), Number(month) - 1).toLocaleDateString(undefined, { month: 'short', year: '2-digit' });
+                    }
+                    return value;
                   }
+                  return value;
                 }}
               />
               <YAxis tick={{ fill: '#64748b' }} />
