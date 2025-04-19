@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import { Calendar, ChevronDown } from 'lucide-react';
 import { fetchCommitFrequency } from '../../services/apiService';
-import LoadingSpinner from '../UI/LoadingSpinner';
+import LoadingSpinner from '../LoadingSpinner';
 
 interface CommitFrequencyProps {
   repoUrl: string;
@@ -54,11 +54,30 @@ const CommitFrequency: React.FC<CommitFrequencyProps> = ({ repoUrl }) => {
 
   const toggleDropdown = () => setIsDropdownOpen(!isDropdownOpen);
 
+  // Helper to get the correct slice and header
+  const getDisplayDataAndHeader = () => {
+    let displayData = data;
+    let header = 'Commit Frequency';
+    if (frequency === 'day') {
+      displayData = data.slice(-15);
+      header = 'Commit Frequency (Last 15 Days)';
+    } else if (frequency === 'week') {
+      displayData = data.slice(-4);
+      header = 'Commit Frequency (Last 4 Weeks)';
+    } else if (frequency === 'month') {
+      displayData = data.slice(-12);
+      header = 'Commit Frequency (Last 12 Months)';
+    }
+    return { displayData, header };
+  };
+
+  const { displayData, header } = getDisplayDataAndHeader();
+
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold mb-1">Commit Frequency</h2>
+          <h2 className="text-xl font-semibold mb-1">{header}</h2>
           <p className="text-neutral-600 dark:text-neutral-400 text-sm">
             Number of commits over time
           </p>
@@ -109,14 +128,14 @@ const CommitFrequency: React.FC<CommitFrequencyProps> = ({ repoUrl }) => {
           <div className="flex items-center justify-center h-[300px] text-error-600 dark:text-error-500">
             {error}
           </div>
-        ) : data.length === 0 ? (
+        ) : displayData.length === 0 ? (
           <div className="flex items-center justify-center h-[300px] text-neutral-600 dark:text-neutral-400">
             No commit data available
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={300}>
             <LineChart
-              data={data}
+              data={displayData}
               margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
@@ -173,4 +192,3 @@ const CommitFrequency: React.FC<CommitFrequencyProps> = ({ repoUrl }) => {
 };
 
 export default CommitFrequency;
-

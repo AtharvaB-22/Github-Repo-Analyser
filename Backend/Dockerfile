@@ -9,7 +9,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the .env file and application code
-COPY .env .
+COPY .env . 
 COPY . .
 
 # Expose the port your Flask app runs on
