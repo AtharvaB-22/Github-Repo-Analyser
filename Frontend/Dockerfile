@@ -1,5 +1,5 @@
-# Build stage
-FROM node:16 AS build
+# Use official Node.js runtime as the base image
+FROM node:16
 
 # Set working directory
 WORKDIR /app
@@ -11,23 +11,8 @@ RUN npm install
 # Copy the rest of the frontend files
 COPY . .
 
-# Build the production version
-RUN npm run build
-
-# Serve stage
-FROM node:16-slim
-
-# Set working directory
-WORKDIR /app
-
-# Copy built files from the build stage
-COPY --from=build /app/dist ./dist
-
-# Install serve to run the app
-RUN npm install -g serve
-
-# Expose the port
+# Expose the Vite development port
 EXPOSE 5173
 
-# Command to serve the app
-CMD ["serve", "-s", "dist", "-l", "5173"]
+# Command to run the Vite development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
